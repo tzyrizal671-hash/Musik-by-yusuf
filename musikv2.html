@@ -1,0 +1,570 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YUSUF MUSIC V6</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#1ed760;--panel:#222}
+body{
+ background:#111;color:white;font-family:Arial,sans-serif;
+ padding-bottom:330px;overflow-x:hidden
+}
+.background{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#111}
+.blur{position:absolute;width:330px;height:330px;border-radius:50%;filter:blur(100px);opacity:.2;animation:float 12s infinite alternate}
+.blur.one{background:#888;top:5%;left:-130px}
+.blur.two{background:#1ed760;right:-180px;top:40%;animation-delay:2s}
+.blur.three{background:#666;bottom:-150px;left:30%;animation-delay:4s}
+@keyframes float{to{transform:translate(100px,80px) scale(1.4)}}
+
+header{display:flex;justify-content:space-between;align-items:center;padding:25px 20px;animation:entry .8s}
+.logo{font-size:26px;font-weight:900;white-space:nowrap}
+#typing{color:var(--green);border-right:3px solid var(--green);padding-right:4px;text-shadow:0 0 12px var(--green);animation:blink .7s infinite}
+@keyframes blink{50%{border-color:transparent}}
+.status{color:var(--green);font-size:12px;letter-spacing:1px}
+
+.search{padding:15px 18px}
+.search input{width:100%;padding:17px 20px;border:1px solid #383838;outline:none;border-radius:30px;background:#292929;color:white;font-size:15px}
+.search input:focus{border-color:var(--green);box-shadow:0 0 12px #1ed76040}
+
+.categories{display:flex;gap:10px;padding:12px 18px;overflow-x:auto;scrollbar-width:none}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .2s}
+button:active,.song:active{transform:scale(.92)}
+.categories button{border:0;border-radius:30px;padding:13px 20px;background:#292929;color:white;white-space:nowrap;font-size:14px}
+.categories button.active{background:var(--green);color:black}
+
+h2{font-size:22px;margin:28px 18px 15px}
+#songs{padding:0 12px}
+.song{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;animation:entry .5s both}
+.song img{width:58px;height:58px;border-radius:8px;object-fit:cover;background:#333}
+.info{flex:1;min-width:0}
+.info h4{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info p{font-size:12px;color:#999;margin-top:6px}
+.song-actions{display:flex;align-items:center;gap:14px}
+.song-actions button{border:0;background:none;color:var(--green);font-size:21px}
+#message{text-align:center;color:#999;padding:30px 10px}
+
+/* PLAYLIST */
+.playlist-section{margin:28px 14px;padding:16px;background:#222b;border:1px solid #ffffff12;border-radius:18px}
+.playlist-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.playlist-head h2{margin:0;font-size:20px}
+.playlist-count{font-size:12px;color:#aaa;margin-top:6px}
+.mode-buttons{display:flex;gap:7px;margin-top:14px}
+.mode-buttons button{border:1px solid #444;background:#303030;color:white;border-radius:20px;padding:9px 13px;font-size:12px}
+.mode-buttons button.active{background:var(--green);color:#111;border-color:var(--green)}
+.play-all{width:100%;margin-top:13px;border:0;border-radius:25px;background:var(--green);color:#111;padding:12px;font-weight:bold}
+#playlist{margin-top:12px}
+.playlist-song{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #ffffff12}
+.playlist-song img{width:43px;height:43px;border-radius:7px;object-fit:cover}
+.playlist-song .info h4{font-size:13px}
+.playlist-song .info p{font-size:11px}
+.playlist-song button{background:none;border:0;color:#aaa;font-size:19px;padding:5px}
+.playlist-song .active-title{color:var(--green)}
+.empty-playlist{text-align:center;color:#888;font-size:13px;padding:22px 5px}
+footer{text-align:center;color:#666;font-size:11px;padding:25px}
+
+/* PLAYER */
+.player{position:fixed;bottom:0;left:0;width:100%;background:#202020ed;backdrop-filter:blur(20px);border-top:1px solid #ffffff20;padding:12px 14px 18px;z-index:20}
+.video-wrap{display:flex;justify-content:center;margin-bottom:12px}
+.video{width:200px;height:200px;max-width:100%;background:#080808;border-radius:12px;overflow:hidden}
+#ytplayer{width:100%;height:100%}
+.player-info{display:flex;align-items:center;gap:10px}
+.player-info img{width:48px;height:48px;border-radius:8px;object-fit:cover}
+.details{flex:1;min-width:0}
+.details h4{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.details p{font-size:11px;color:#999;margin-top:5px}
+.controls{display:flex;align-items:center;gap:12px}
+.controls button{border:0;background:none;color:white;font-size:21px}
+.controls .main{width:43px;height:43px;border-radius:50%;background:var(--green);color:black;font-size:18px}
+@keyframes entry{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+
+<body>
+
+<div class="background">
+ <div class="blur one"></div>
+ <div class="blur two"></div>
+ <div class="blur three"></div>
+</div>
+
+<header>
+ <div class="logo"><span id="typing"></span></div>
+ <div class="status">MUSIC PLAYER</div>
+</header>
+
+<div class="search">
+ <input id="search" placeholder="Cari lagu Indonesia..."
+ onkeydown="if(event.key==='Enter')searchMusic()">
+</div>
+
+<div class="categories">
+ <button class="active" onclick="category(this,'lagu Indonesia terbaru')">Semua</button>
+ <button onclick="category(this,'lagu pop Indonesia')">Pop</button>
+ <button onclick="category(this,'lagu galau Indonesia')">Galau</button>
+ <button onclick="category(this,'lagu Jawa terbaru')">Lagu Jawa</button>
+ <button onclick="category(this,'lagu nostalgia Indonesia')">Nostalgia</button>
+ <button onclick="category(this,'lagu viral Indonesia')">Viral</button>
+</div>
+
+<h2 id="heading">Lagu Indonesia</h2>
+<div id="songs"><div id="message">Memuat lagu...</div></div>
+
+<!-- PLAYLIST -->
+<div class="playlist-section">
+ <div class="playlist-head">
+  <div>
+   <h2>♫ Playlist Saya</h2>
+   <div class="playlist-count" id="playlistCount">0 lagu</div>
+  </div>
+ </div>
+
+ <div class="mode-buttons">
+  <button id="sequential" class="active" onclick="setMode('sequential')">☰ Berurutan</button>
+  <button id="shuffle" onclick="setMode('shuffle')">🔀 Acak</button>
+ </div>
+
+ <button class="play-all" onclick="playAll()">▶ Putar Playlist</button>
+
+ <div id="playlist">
+  <div class="empty-playlist">Playlist masih kosong. Tambahkan lagu dahulu!</div>
+ </div>
+</div>
+
+<footer>YUSUF MUSIC © 2026</footer>
+
+<!-- PLAYER -->
+<div class="player">
+ <div class="video-wrap">
+  <div class="video"><div id="ytplayer"></div></div>
+ </div>
+
+ <div class="player-info">
+  <img id="cover" src="https://placehold.co/100x100/252525/ffffff?text=YUSUF">
+  <div class="details">
+   <h4 id="title">Belum ada lagu</h4>
+   <p id="artist">YUSUF MUSIC</p>
+  </div>
+  <div class="controls">
+   <button onclick="previous()">⏮</button>
+   <button class="main" id="playButton" onclick="togglePlay()">▶</button>
+   <button onclick="next()">⏭</button>
+  </div>
+ </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+/* TYPING */
+const typingText="YUSUF MUSIC";
+let typingIndex=0,deleting=false;
+
+function typeAnimation(){
+ const el=document.getElementById("typing");
+ el.textContent=typingText.substring(0,typingIndex);
+
+ if(!deleting){
+  typingIndex++;
+  if(typingIndex>typingText.length){
+   deleting=true;
+   setTimeout(typeAnimation,1300);
+   return;
+  }
+ }else{
+  typingIndex--;
+  if(typingIndex<0){
+   typingIndex=0;
+   deleting=false;
+  }
+ }
+ setTimeout(typeAnimation,deleting?65:130);
+}
+typeAnimation();
+
+/* SOUND */
+let soundContext;
+function clickSound(){
+ try{
+  if(!soundContext)
+   soundContext=new(window.AudioContext||window.webkitAudioContext)();
+  if(soundContext.state==="suspended")soundContext.resume();
+
+  const osc=soundContext.createOscillator();
+  const gain=soundContext.createGain();
+  osc.type="sine";
+  osc.frequency.setValueAtTime(700,soundContext.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(420,soundContext.currentTime+.06);
+  gain.gain.setValueAtTime(.045,soundContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,soundContext.currentTime+.08);
+  osc.connect(gain);
+  gain.connect(soundContext.destination);
+  osc.start();
+  osc.stop(soundContext.currentTime+.08);
+ }catch(e){}
+}
+document.addEventListener("pointerdown",e=>{
+ if(e.target.closest("button,.song"))clickSound();
+});
+
+/* SEARCH */
+const SERVERS=[
+ "https://inv.nadeko.net",
+ "https://invidious.nerdvpn.de",
+ "https://yt.chocolatemoo53.com",
+ "https://invidious.tiekoetter.com"
+];
+
+let songs=[];
+let playlist=[];
+let current=-1;
+let currentVideoId=null;
+let mode="sequential";
+let player=null;
+let playerReady=false;
+let searchRequest=0;
+let playlistPosition=-1;
+
+try{
+ const saved=JSON.parse(localStorage.getItem("yusuf_playlist")||"[]");
+ if(Array.isArray(saved))playlist=saved;
+}catch(e){playlist=[]}
+
+async function searchAPI(query){
+ const request=++searchRequest;
+ const container=document.getElementById("songs");
+ container.innerHTML='<div id="message">Sedang mencari lagu...</div>';
+
+ let success=false;
+
+ for(const server of SERVERS){
+  if(request!==searchRequest)return;
+
+  try{
+   const response=await fetch(
+    server+"/api/v1/search?q="+encodeURIComponent(query)+
+    "&type=video&region=ID"
+   );
+   if(!response.ok)continue;
+
+   const data=await response.json();
+   if(!Array.isArray(data))continue;
+   if(request!==searchRequest)return;
+
+   songs=data.filter(s=>s.type==="video"&&s.videoId);
+   showSongs();
+   success=true;
+   break;
+  }catch(e){}
+ }
+
+ if(!success&&request===searchRequest){
+  container.innerHTML='<div id="message">Server pencarian tidak tersedia. Coba lagi nanti.</div>';
+ }
+}
+
+function thumbnail(song){
+ const thumbs=song.videoThumbnails||[];
+ return thumbs.length?thumbs[thumbs.length-1].url:
+ "https://placehold.co/100x100/252525/ffffff?text=Music";
+}
+
+function showSongs(){
+ const container=document.getElementById("songs");
+ container.innerHTML="";
+
+ if(!songs.length){
+  container.innerHTML='<div id="message">Lagu tidak ditemukan.</div>';
+  return;
+ }
+
+ songs.forEach((song,index)=>{
+  const item=document.createElement("div");
+  item.className="song";
+  item.style.animationDelay=(index*.04)+"s";
+
+  const img=document.createElement("img");
+  img.src=thumbnail(song);
+
+  const info=document.createElement("div");
+  info.className="info";
+
+  const name=document.createElement("h4");
+  name.textContent=song.title;
+
+  const artist=document.createElement("p");
+  artist.textContent=song.author||"Unknown Artist";
+
+  info.append(name,artist);
+
+  const actions=document.createElement("div");
+  actions.className="song-actions";
+
+  const add=document.createElement("button");
+  add.textContent="+";
+  add.title="Tambah ke playlist";
+  add.onclick=e=>{
+   e.stopPropagation();
+   addToPlaylist(song);
+  };
+
+  const play=document.createElement("button");
+  play.textContent="▶";
+  play.onclick=e=>{
+   e.stopPropagation();
+   playSong(song);
+  };
+
+  actions.append(add,play);
+  item.append(img,info,actions);
+  item.onclick=()=>playSong(song);
+  container.append(item);
+ });
+}
+
+/* PLAYLIST */
+function savePlaylist(){
+ try{
+  localStorage.setItem("yusuf_playlist",JSON.stringify(playlist));
+ }catch(e){
+  console.log("Playlist tidak bisa disimpan",e);
+ }
+}
+
+function addToPlaylist(song){
+ if(playlist.some(s=>s.videoId===song.videoId)){
+  alert("Lagu sudah ada di playlist!");
+  return;
+ }
+
+ playlist.push({
+  videoId:song.videoId,
+  title:song.title,
+  author:song.author||"Unknown Artist",
+  videoThumbnails:song.videoThumbnails||[]
+ });
+
+ savePlaylist();
+ renderPlaylist();
+}
+
+function removeSong(index){
+ const removed=playlist[index];
+
+ playlist.splice(index,1);
+
+ if(currentVideoId===removed?.videoId){
+  currentVideoId=null;
+  playlistPosition=-1;
+ }
+
+ savePlaylist();
+ renderPlaylist();
+}
+
+function renderPlaylist(){
+ const container=document.getElementById("playlist");
+ document.getElementById("playlistCount").textContent=playlist.length+" lagu";
+ container.innerHTML="";
+
+ if(!playlist.length){
+  container.innerHTML='<div class="empty-playlist">Playlist masih kosong. Tambahkan lagu dahulu!</div>';
+  return;
+ }
+
+ playlist.forEach((song,index)=>{
+  const row=document.createElement("div");
+  row.className="playlist-song";
+
+  const img=document.createElement("img");
+  img.src=thumbnail(song);
+
+  const info=document.createElement("div");
+  info.className="info";
+
+  const title=document.createElement("h4");
+  title.textContent=song.title;
+  if(song.videoId===currentVideoId)title.className="active-title";
+
+  const artist=document.createElement("p");
+  artist.textContent=song.author||"Unknown";
+
+  info.append(title,artist);
+
+  const play=document.createElement("button");
+  play.textContent="▶";
+  play.onclick=()=>playPlaylistIndex(index);
+
+  const remove=document.createElement("button");
+  remove.textContent="×";
+  remove.title="Hapus lagu";
+  remove.onclick=()=>removeSong(index);
+
+  row.append(img,info,play,remove);
+  container.append(row);
+ });
+}
+
+function setMode(value){
+ mode=value;
+ document.getElementById("sequential").classList.toggle("active",mode==="sequential");
+ document.getElementById("shuffle").classList.toggle("active",mode==="shuffle");
+}
+
+/* YOUTUBE */
+function onYouTubeIframeAPIReady(){
+ player=new YT.Player("ytplayer",{
+  width:"200",height:"200",videoId:"",
+  playerVars:{autoplay:0,controls:1,playsinline:1,rel:0},
+  events:{
+   onReady:()=>{playerReady=true},
+   onStateChange:event=>{
+    const btn=document.getElementById("playButton");
+
+    if(event.data===YT.PlayerState.PLAYING)btn.textContent="Ⅱ";
+    if(event.data===YT.PlayerState.PAUSED||event.data===YT.PlayerState.ENDED)btn.textContent="▶";
+
+    if(event.data===YT.PlayerState.ENDED)next();
+   }
+  }
+ });
+}
+
+/* PLAY */
+function updatePlayer(song){
+ document.getElementById("title").textContent=song.title;
+ document.getElementById("artist").textContent=song.author||"Unknown Artist";
+ document.getElementById("cover").src=thumbnail(song);
+ currentVideoId=song.videoId;
+ renderPlaylist();
+}
+
+function playSong(song){
+ if(!playerReady){
+  alert("Player masih dimuat. Tunggu sebentar.");
+  return;
+ }
+
+ let index=playlist.findIndex(s=>s.videoId===song.videoId);
+
+ if(index===-1){
+  playlist.push(song);
+  savePlaylist();
+  index=playlist.length-1;
+ }
+
+ playlistPosition=index;
+ current=index;
+
+ updatePlayer(song);
+ player.loadVideoById(song.videoId);
+}
+
+function playPlaylistIndex(index){
+ if(!playlist[index])return;
+ if(!playerReady){
+  alert("Player masih dimuat. Tunggu sebentar.");
+  return;
+ }
+
+ playlistPosition=index;
+ current=index;
+ const song=playlist[index];
+
+ updatePlayer(song);
+ player.loadVideoById(song.videoId);
+}
+
+function playAll(){
+ if(!playlist.length){
+  alert("Playlist masih kosong!");
+  return;
+ }
+
+ if(mode==="shuffle"){
+  const random=Math.floor(Math.random()*playlist.length);
+  playPlaylistIndex(random);
+ }else{
+  playPlaylistIndex(0);
+ }
+}
+
+function togglePlay(){
+ if(!playerReady)return;
+
+ if(!currentVideoId){
+  if(playlist.length)playAll();
+  return;
+ }
+
+ const state=player.getPlayerState();
+
+ if(state===YT.PlayerState.PLAYING)player.pauseVideo();
+ else player.playVideo();
+}
+
+/* NEXT / PREVIOUS */
+function next(){
+ if(!playlist.length||playlistPosition<0)return;
+
+ if(mode==="shuffle"){
+  if(playlist.length===1){
+   playPlaylistIndex(0);
+   return;
+  }
+
+  let random;
+  do{
+   random=Math.floor(Math.random()*playlist.length);
+  }while(random===playlistPosition);
+
+  playPlaylistIndex(random);
+ }else{
+  const nextIndex=playlistPosition+1;
+  if(nextIndex<playlist.length)playPlaylistIndex(nextIndex);
+ }
+}
+
+function previous(){
+ if(!playlist.length||playlistPosition<0)return;
+
+ if(mode==="shuffle"){
+  if(playlist.length===1)return;
+
+  let random;
+  do{
+   random=Math.floor(Math.random()*playlist.length);
+  }while(random===playlistPosition);
+
+  playPlaylistIndex(random);
+ }else{
+  const prevIndex=playlistPosition-1;
+  if(prevIndex>=0)playPlaylistIndex(prevIndex);
+ }
+}
+
+/* SEARCH + CATEGORY */
+function searchMusic(){
+ const query=document.getElementById("search").value.trim();
+ if(!query)return;
+ document.getElementById("heading").textContent="Hasil pencarian: "+query;
+ searchAPI(query+" lagu Indonesia");
+}
+
+function category(button,query){
+ document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
+ button.classList.add("active");
+ document.getElementById("heading").textContent=button.textContent;
+ searchAPI(query);
+}
+
+/* INITIAL */
+renderPlaylist();
+searchAPI("lagu Indonesia terbaru official music video");
+
+</script>
+</body>
+</html>
